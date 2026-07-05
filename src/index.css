@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-matte-black text-white antialiased;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bebas Neue', 'Oswald', 'Arial Black', sans-serif;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer utilities {
+  .racing-stripe {
+    background: linear-gradient(135deg, transparent 0%, transparent 45%, #E10600 45%, #E10600 55%, transparent 55%, transparent 100%);
+  }
+  
+  .text-shadow-glow {
+    text-shadow: 0 0 20px rgba(225, 6, 0, 0.5);
+  }
+}
