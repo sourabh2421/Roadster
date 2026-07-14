@@ -1,9 +1,56 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaWhatsapp, FaPhoneAlt, FaInstagram } from 'react-icons/fa';
+import { FaWhatsapp, FaPhoneAlt, FaInstagram, FaStar } from 'react-icons/fa';
 import { Clock, Shield, Gauge, Car } from 'lucide-react';
 
+// Images
+import heroBg from '../assets/hero.png';
+import mercedesImg from '../assets/Mercedes.jpg';
+import tharImg from '../assets/Thar.jpg';
+import scorpioImg from '../assets/Scorpio.jpg';
+
+// Stats config - Update manually (no live API integration)
+const stats = {
+  igFollowers: '618+',
+  serviceHours: '24/7',
+  fleetCount: '6+',
+};
+
 const Home = () => {
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
+  // Fetch approved reviews on component mount
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const fetchReviews = async () => {
+    setLoadingReviews(true);
+    try {
+      const response = await fetch('/api/reviews?status=approved');
+      const data = await response.json();
+      
+      if (data.success) {
+        setReviews(data.reviews || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const renderStars = (rating) => {
+    return [...Array(5)].map((_, index) => (
+      <FaStar
+        key={index}
+        className={index < rating ? 'text-racing-red' : 'text-gray-600'}
+      />
+    ));
+  };
+
   const trustPoints = [
     {
       icon: <Clock className="w-12 h-12" />,
@@ -29,22 +76,28 @@ const Home = () => {
 
   const featuredCars = [
     {
+      id: 'mercedes-cla',
       name: 'Mercedes CLA 200',
       price12: '₹10,000',
       price24: '₹20,000',
       tag: 'PREMIUM',
+      image: mercedesImg,
     },
     {
+      id: 'thar',
       name: 'Mahindra Thar',
       price12: '₹3,000',
       price24: '₹5,000',
       tag: 'ADVENTURE',
+      image: tharImg,
     },
     {
+      id: 'scorpio-classic',
       name: 'Scorpio Classic',
       price12: '₹3,000',
       price24: '₹5,000',
       tag: 'POPULAR',
+      image: scorpioImg,
     },
   ];
 
@@ -54,7 +107,10 @@ const Home = () => {
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background with overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-matte-black z-0">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1920')] bg-cover bg-center opacity-30" />
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-30"
+            style={{ backgroundImage: `url(${heroBg})` }}
+          />
           {/* Racing stripes */}
           <div className="absolute top-0 left-1/4 w-2 h-full bg-racing-red opacity-20 transform -skew-x-12" />
           <div className="absolute top-0 right-1/4 w-2 h-full bg-racing-red opacity-20 transform -skew-x-12" />
@@ -91,6 +147,14 @@ const Home = () => {
               href="https://wa.me/919540771001?text=Hi%2C%20I%27m%20interested%20in%20renting%20a%20car"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                if (window.gtag) {
+                  window.gtag('event', 'whatsapp_click', {
+                    source: 'home_page',
+                    action: 'hero_cta',
+                  });
+                }
+              }}
               className="flex items-center gap-3 bg-racing-red hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-xl"
             >
               <FaWhatsapp className="text-2xl" />
@@ -99,6 +163,14 @@ const Home = () => {
             
             <a
               href="tel:+919540771001"
+              onClick={() => {
+                if (window.gtag) {
+                  window.gtag('event', 'phone_click', {
+                    source: 'home_page',
+                    action: 'hero_cta',
+                  });
+                }
+              }}
               className="flex items-center gap-3 bg-white hover:bg-gray-200 text-black px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-xl"
             >
               <FaPhoneAlt className="text-xl" />
@@ -196,10 +268,20 @@ const Home = () => {
                 whileHover={{ y: -10 }}
                 className="bg-gradient-to-br from-gray-900 to-black rounded-lg overflow-hidden border-2 border-racing-red/30 hover:border-racing-red transition-all duration-300 shadow-2xl"
               >
-                <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                  <Car className="w-24 h-24 text-racing-red opacity-50" />
+                <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+                  <img 
+                    src={car.image} 
+                    alt={car.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.querySelector('.car-fallback')?.classList.remove('hidden');
+                    }}
+                  />
+                  <Car className="car-fallback hidden w-24 h-24 text-racing-red opacity-50 absolute inset-0 m-auto" />
                   {car.tag && (
-                    <div className="absolute top-4 right-4 bg-racing-red text-white px-3 py-1 text-xs font-heading">
+                    <div className="absolute top-4 right-4 bg-racing-red text-white px-3 py-1 text-xs font-heading z-10">
                       {car.tag}
                     </div>
                   )}
@@ -220,6 +302,15 @@ const Home = () => {
                     href={`https://wa.me/919540771001?text=Hi%2C%20I%27m%20interested%20in%20renting%20the%20${encodeURIComponent(car.name)}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      if (window.gtag) {
+                        window.gtag('event', 'whatsapp_click', {
+                          source: 'home_page',
+                          action: 'featured_fleet',
+                          car_name: car.name,
+                        });
+                      }
+                    }}
                     className="block w-full bg-racing-red hover:bg-red-700 text-white text-center py-3 rounded-md font-semibold transition-all duration-300"
                   >
                     Book Now
@@ -266,7 +357,7 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 className="text-center"
               >
-                <div className="text-6xl font-heading text-racing-red mb-2">618+</div>
+                <div className="text-6xl font-heading text-racing-red mb-2">{stats.igFollowers}</div>
                 <p className="text-gray-400 text-lg">Instagram Followers</p>
               </motion.div>
               
@@ -274,7 +365,7 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 className="text-center"
               >
-                <div className="text-6xl font-heading text-racing-red mb-2">24/7</div>
+                <div className="text-6xl font-heading text-racing-red mb-2">{stats.serviceHours}</div>
                 <p className="text-gray-400 text-lg">Service Available</p>
               </motion.div>
               
@@ -282,7 +373,7 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 className="text-center"
               >
-                <div className="text-6xl font-heading text-racing-red mb-2">6+</div>
+                <div className="text-6xl font-heading text-racing-red mb-2">{stats.fleetCount}</div>
                 <p className="text-gray-400 text-lg">Premium Vehicles</p>
               </motion.div>
             </div>
@@ -297,6 +388,213 @@ const Home = () => {
               <span>Follow @r0adster_drive</span>
             </a>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-black relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-full h-full bg-[repeating-linear-gradient(45deg,transparent,transparent_20px,#E10600_20px,#E10600_21px)]" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-5xl md:text-6xl font-heading text-white mb-4">
+              WHAT OUR <span className="text-racing-red">CUSTOMERS SAY</span>
+            </h2>
+            <div className="w-24 h-1 bg-racing-red mx-auto mb-4" />
+            <p className="text-gray-400 text-lg">Real experiences from real customers</p>
+          </motion.div>
+
+          {loadingReviews ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-racing-red"></div>
+              <p className="text-gray-400 mt-4">Loading reviews...</p>
+            </div>
+          ) : reviews.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="max-w-2xl mx-auto text-center py-16"
+            >
+              <div className="bg-gradient-to-br from-gray-900 to-black rounded-lg p-12 border-2 border-racing-red/30">
+                <FaStar className="text-racing-red mx-auto mb-6" size={60} />
+                <h3 className="text-3xl font-heading text-white mb-4">
+                  Be the First to Share Your Experience!
+                </h3>
+                <p className="text-gray-400 text-lg mb-8">
+                  We'd love to hear about your journey with Roadster. Your feedback helps us serve you better.
+                </p>
+                <Link
+                  to="/contact"
+                  className="inline-block bg-racing-red hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                >
+                  Leave a Review
+                </Link>
+              </div>
+            </motion.div>
+          ) : reviews.length < 3 ? (
+            /* Static centered display for 1-2 reviews */
+            <div className="flex justify-center gap-8">
+              {reviews.map((review, index) => (
+                <motion.div
+                  key={review._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  whileHover={{ y: -10 }}
+                  className="bg-gradient-to-br from-gray-900 to-black rounded-lg p-8 border-2 border-racing-red/30 hover:border-racing-red transition-all duration-300 shadow-2xl w-full max-w-md"
+                >
+                  {/* Star rating */}
+                  <div className="flex gap-1 mb-4">
+                    {renderStars(review.rating)}
+                  </div>
+
+                  {/* Review text */}
+                  <p className="text-gray-300 text-base mb-6 leading-relaxed line-clamp-6">
+                    "{review.reviewText}"
+                  </p>
+
+                  {/* Customer name */}
+                  <div className="border-t border-gray-800 pt-4">
+                    <p className="text-white font-semibold">{review.customerName}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            /* Horizontal auto-scrolling slider for 3+ reviews */
+            <div 
+              className="reviews-slider-container group"
+              style={{
+                '--review-count': reviews.length,
+                '--card-width': '380px',
+                '--gap': '32px',
+              }}
+            >
+              <style>{`
+                @keyframes scroll-reviews {
+                  0% {
+                    transform: translateX(0);
+                  }
+                  100% {
+                    transform: translateX(calc(-1 * (var(--card-width) + var(--gap)) * var(--review-count)));
+                  }
+                }
+
+                .reviews-slider-container {
+                  overflow: hidden;
+                  position: relative;
+                  width: 100%;
+                }
+
+                .reviews-slider-track {
+                  display: flex;
+                  gap: var(--gap);
+                  animation: scroll-reviews ${reviews.length * 8}s linear infinite;
+                  animation-play-state: running;
+                }
+
+                .reviews-slider-container:hover .reviews-slider-track {
+                  animation-play-state: paused;
+                }
+
+                .review-card {
+                  flex: 0 0 var(--card-width);
+                  width: var(--card-width);
+                  height: 320px;
+                  display: flex;
+                  flex-direction: column;
+                }
+
+                .review-text {
+                  display: -webkit-box;
+                  -webkit-line-clamp: 6;
+                  -webkit-box-orient: vertical;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                }
+              `}</style>
+
+              <div className="reviews-slider-track">
+                {/* First set of reviews */}
+                {reviews.map((review) => (
+                  <div
+                    key={`first-${review._id}`}
+                    className="review-card bg-gradient-to-br from-gray-900 to-black rounded-lg p-8 border-2 border-racing-red/30 hover:border-racing-red transition-all duration-300 shadow-2xl"
+                  >
+                    {/* Star rating */}
+                    <div className="flex gap-1 mb-4">
+                      {renderStars(review.rating)}
+                    </div>
+
+                    {/* Review text */}
+                    <p className="review-text text-gray-300 text-base mb-6 leading-relaxed flex-1">
+                      "{review.reviewText}"
+                    </p>
+
+                    {/* Customer name */}
+                    <div className="border-t border-gray-800 pt-4">
+                      <p className="text-white font-semibold">{review.customerName}</p>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Duplicate set for seamless loop */}
+                {reviews.map((review) => (
+                  <div
+                    key={`second-${review._id}`}
+                    className="review-card bg-gradient-to-br from-gray-900 to-black rounded-lg p-8 border-2 border-racing-red/30 hover:border-racing-red transition-all duration-300 shadow-2xl"
+                    aria-hidden="true"
+                  >
+                    {/* Star rating */}
+                    <div className="flex gap-1 mb-4">
+                      {renderStars(review.rating)}
+                    </div>
+
+                    {/* Review text */}
+                    <p className="review-text text-gray-300 text-base mb-6 leading-relaxed flex-1">
+                      "{review.reviewText}"
+                    </p>
+
+                    {/* Customer name */}
+                    <div className="border-t border-gray-800 pt-4">
+                      <p className="text-white font-semibold">{review.customerName}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Call to action for more reviews */}
+          {reviews.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-center mt-12"
+            >
+              <p className="text-gray-400 mb-4">Had a great experience with us?</p>
+              <Link
+                to="/contact"
+                className="inline-block bg-racing-red hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-all hover:scale-105"
+              >
+                Share Your Review
+              </Link>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -323,6 +621,14 @@ const Home = () => {
                 href="https://wa.me/919540771001?text=Hi%2C%20I%27m%20interested%20in%20renting%20a%20car"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => {
+                  if (window.gtag) {
+                    window.gtag('event', 'whatsapp_click', {
+                      source: 'home_page',
+                      action: 'final_cta',
+                    });
+                  }
+                }}
                 className="flex items-center gap-3 bg-black hover:bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-xl"
               >
                 <FaWhatsapp className="text-2xl" />
@@ -331,6 +637,14 @@ const Home = () => {
               
               <a
                 href="tel:+919540771001"
+                onClick={() => {
+                  if (window.gtag) {
+                    window.gtag('event', 'phone_click', {
+                      source: 'home_page',
+                      action: 'final_cta',
+                    });
+                  }
+                }}
                 className="flex items-center gap-3 bg-white hover:bg-gray-200 text-black px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-xl"
               >
                 <FaPhoneAlt className="text-xl" />

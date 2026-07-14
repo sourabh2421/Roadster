@@ -71,6 +71,14 @@ const Header = () => {
                 href="https://wa.me/919540771001?text=Hi%2C%20I%27m%20interested%20in%20renting%20a%20car"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => {
+                  if (window.gtag) {
+                    window.gtag('event', 'whatsapp_click', {
+                      source: 'header',
+                      device: 'desktop',
+                    });
+                  }
+                }}
                 className="flex items-center gap-2 bg-racing-red hover:bg-red-700 text-white px-6 py-2.5 rounded-md font-semibold transition-all duration-300 hover:scale-105"
               >
                 <FaWhatsapp className="text-xl" />
@@ -123,6 +131,14 @@ const Header = () => {
         href="https://wa.me/919540771001?text=Hi%2C%20I%27m%20interested%20in%20renting%20a%20car"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => {
+          if (window.gtag) {
+            window.gtag('event', 'whatsapp_click', {
+              source: 'floating_button',
+              device: 'mobile',
+            });
+          }
+        }}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1 }}
