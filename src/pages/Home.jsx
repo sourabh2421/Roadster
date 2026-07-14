@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FaWhatsapp, FaPhoneAlt, FaInstagram, FaStar } from 'react-icons/fa';
 import { Clock, Shield, Gauge, Car } from 'lucide-react';
+import BookingModal from '../components/BookingModal';
 
 // Images
 import heroBg from '../assets/hero.png';
@@ -20,6 +21,18 @@ const stats = {
 const Home = () => {
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+  const openBookingModal = (car) => {
+    setSelectedCar(car);
+    setIsBookingModalOpen(true);
+  };
+
+  const closeBookingModal = () => {
+    setIsBookingModalOpen(false);
+    setSelectedCar(null);
+  };
 
   // Fetch approved reviews on component mount
   useEffect(() => {
@@ -298,23 +311,12 @@ const Home = () => {
                       <p className="text-racing-red text-xl font-bold">{car.price24}</p>
                     </div>
                   </div>
-                  <a
-                    href={`https://wa.me/919540771001?text=Hi%2C%20I%27m%20interested%20in%20renting%20the%20${encodeURIComponent(car.name)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      if (window.gtag) {
-                        window.gtag('event', 'whatsapp_click', {
-                          source: 'home_page',
-                          action: 'featured_fleet',
-                          car_name: car.name,
-                        });
-                      }
-                    }}
+                  <button
+                    onClick={() => openBookingModal(car)}
                     className="block w-full bg-racing-red hover:bg-red-700 text-white text-center py-3 rounded-md font-semibold transition-all duration-300"
                   >
                     Book Now
-                  </a>
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -654,6 +656,13 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={closeBookingModal}
+        car={selectedCar}
+      />
     </div>
   );
 };
